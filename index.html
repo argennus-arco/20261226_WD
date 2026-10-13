@@ -660,43 +660,5 @@ document.getElementById("guestbookForm").addEventListener(
   });
 })();
 </script>
-  
-<script>
-/* 2페이지에서 아래로 넘길 때 3페이지로 이동 */
-(function () {
-  const pages = document.getElementById("pages");
-  const page2 = document.getElementById("page2");
-  const page3 = document.getElementById("page3");
-
-  let startY = 0;
-  let startX = 0;
-  let handled = false;
-
-  page2.addEventListener("touchstart", function (event) {
-    startY = event.touches[0].clientY;
-    startX = event.touches[0].clientX;
-    handled = false;
-  }, { passive: true });
-
-  page2.addEventListener("touchmove", function (event) {
-    if (handled) return;
-
-    const currentY = event.touches[0].clientY;
-    const currentX = event.touches[0].clientX;
-    const deltaY = currentY - startY;
-    const deltaX = currentX - startX;
-
-    /* 아래로 충분히 스와이프했고, 좌우 움직임보다 클 때 */
-    if (deltaY < -35 && Math.abs(deltaY) > Math.abs(deltaX)) {
-      handled = true;
-
-      pages.scrollTo({
-        top: page3.offsetTop,
-        behavior: "smooth"
-      });
-    }
-  }, { passive: true });
-})();
-</script>
 </body>
 </html>
