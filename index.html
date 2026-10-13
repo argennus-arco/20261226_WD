@@ -614,46 +614,75 @@ document.getElementById("guestbookForm").addEventListener(
 <script>
 (function () {
   const pages = document.getElementById("pages");
-  const details = document.getElementById("page3");
   const page2 = document.getElementById("page2");
+  const page3 = document.getElementById("page3");
 
-  let startY = 0;
   let startX = 0;
-  let movingToPage2 = false;
+  let startY = 0;
+  let startPage = "";
 
-  function isAtTop() {
-    return pages.scrollTop <= details.offsetTop + 2;
+  function goToPage(element) {
+    pages.scrollTo({
+      top: element.offsetTop,
+      behavior: "smooth"
+    });
   }
 
-  details.addEventListener("touchstart", function (event) {
-    startY = event.touches[0].clientY;
+  function handleTouchStart(event, page) {
     startX = event.touches[0].clientX;
-    movingToPage2 = false;
+    startY = event.touches[0].clientY;
+    startPage = page;
+  }
+
+  function handleTouchEnd(event) {
+    if (!startPage || !event.changedTouches.length) return;
+
+    const endX = event.changedTouches[0].clientX;
+    const endY = event.changedTouches[0].clientY;
+
+    const deltaY = endY - startY;
+    const deltaX = endX - startX;
+
+    // 세로 방향으로 충분히 움직였는지 확인
+    if (
+      Math.abs(deltaY) < 50 ||
+      Math.abs(deltaY) <= Math.abs(deltaX)
+    ) {
+      startPage = "";
+      return;
+    }
+
+    // 2페이지에서 위로 스와이프하면 3페이지로 이동
+    if (startPage === "page2" && deltaY < 0) {
+      goToPage(page3);
+    }
+
+    // 3페이지 최상단에서 아래로 스와이프하면 2페이지로 이동
+    if (
+      startPage === "page3" &&
+      deltaY > 0 &&
+      pages.scrollTop <= page3.offsetTop + 2
+    ) {
+      goToPage(page2);
+    }
+
+    startPage = "";
+  }
+
+  page2.addEventListener("touchstart", function (event) {
+    handleTouchStart(event, "page2");
   }, { passive: true });
 
-  details.addEventListener("touchmove", function (event) {
-    const deltaY = event.touches[0].clientY - startY;
-    const deltaX = event.touches[0].clientX - startX;
+  page2.addEventListener("touchend", handleTouchEnd, {
+    passive: true
+  });
 
-    if (
-      isAtTop() &&
-      deltaY > 12 &&
-      Math.abs(deltaY) > Math.abs(deltaX)
-    ) {
-      event.preventDefault();
-      movingToPage2 = true;
-    }
-  }, { passive: false });
+  page3.addEventListener("touchstart", function (event) {
+    handleTouchStart(event, "page3");
+  }, { passive: true });
 
-  details.addEventListener("touchend", function () {
-    if (movingToPage2 && isAtTop()) {
-      pages.scrollTo({
-        top: page2.offsetTop,
-        behavior: "smooth"
-      });
-    }
-
-    movingToPage2 = false;
+  page3.addEventListener("touchend", handleTouchEnd, {
+    passive: true
   });
 })();
 </script>
