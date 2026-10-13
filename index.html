@@ -16,221 +16,161 @@
   --muted: #92848d;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-  background: var(--paper);
-}
-
-body {
+html, body {
   margin: 0;
-  color: var(--ink);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   background: var(--paper);
+  color: var(--ink);
   font-family: "Noto Serif KR", "Nanum Myeongjo",
                Georgia, serif;
 }
 
-button, input, textarea {
-  font: inherit;
+button, input, textarea { font: inherit; }
+
+/* 페이지 단위 스크롤 */
+#pages {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-snap-stop: always;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+
+#pages::-webkit-scrollbar { display: none; }
 
 .scene {
   position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
-  min-height: 100svh;
-  scroll-snap-align: start;
+  min-height: 100dvh;
   overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  flex-shrink: 0;
 }
 
-/* =================================
-   PAGE 1 : INVITATION IMAGE
-================================= */
-
+/* 1페이지: 청첩장 이미지 */
 .cover {
   background: var(--paper);
 }
 
-.cover-inner {
-  width: 100%;
-  height: 100vh;
-  height: 100svh;
-  min-height: 100vh;
-  min-height: 100svh;
-  position: relative;
-  display: grid;
-  place-items: center;
-}
-
-.cover-image {
+.cover img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: center;
-  background: var(--paper);
-}
-
-.image-picker,
-.video-picker {
-  position: absolute;
-  z-index: 10;
-  top: calc(env(safe-area-inset-top) + 14px);
-  right: 14px;
-  padding: 10px 14px;
-  border: 1px solid #ffffff80;
-  border-radius: 30px;
-  color: white;
-  background: #4d404bd9;
-  font: 11px Arial, sans-serif;
-  cursor: pointer;
-}
-
-.image-picker input,
-.video-picker input {
-  display: none;
 }
 
 .scroll-cue {
   position: absolute;
-  z-index: 2;
-  bottom: 22px;
+  bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
+  text-align: center;
   color: var(--ink);
   font: 9px Arial, sans-serif;
   letter-spacing: .2em;
-  text-align: center;
-  white-space: nowrap;
   pointer-events: none;
 }
 
 .scroll-cue::after {
   content: "";
   display: block;
-  height: 24px;
   width: 1px;
-  margin: 10px auto 0;
+  height: 20px;
+  margin: 9px auto 0;
   background: #b9aab2;
 }
 
-/* =================================
-   PAGE 2 : FULLSCREEN VIDEO
-================================= */
-
+/* 2페이지: 전체 화면 영상 */
 .film {
   background: #000;
-  color: white;
 }
 
-.wedding-video {
+.film video {
+  display: block;
   position: absolute;
   inset: 0;
-  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   background: #000;
 }
 
-.video-picker {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 14px);
-  right: 14px;
-}
-
-/* =================================
-   PAGE 3 : WEDDING INFORMATION
-================================= */
-
+/* 3페이지: 정보 */
 .details {
-  min-height: 100vh;
-  padding: 56px 22px 40px;
   background: var(--white);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding:
+    max(38px, env(safe-area-inset-top))
+    22px
+    max(32px, env(safe-area-inset-bottom));
 }
 
 .details-inner {
-  width: 100%;
   max-width: 520px;
+  width: 100%;
   margin: 0 auto;
 }
 
 .details-header {
   text-align: center;
-  padding: 0 0 32px;
+  padding: 12px 0 30px;
 }
 
-.eyebrow {
+.eyebrow, .section-title {
   font: 10px Arial, sans-serif;
-  letter-spacing: .28em;
+  letter-spacing: .25em;
   color: var(--muted);
+  text-align: center;
 }
 
 .details-header h1 {
-  margin: 15px 0;
-  font-size: 27px;
+  margin: 16px 0;
+  font-size: 26px;
   font-weight: 400;
   letter-spacing: .08em;
-  line-height: 1.6;
 }
 
 .invitation-text {
-  margin: 0;
   color: #786c75;
   font-size: 12px;
   line-height: 2.2;
 }
 
-.section-title {
-  margin: 34px 0 18px;
-  text-align: center;
-  font: 10px Arial, sans-serif;
-  letter-spacing: .25em;
-  color: var(--muted);
-}
+.section-title { margin: 30px 0 18px; }
 
-/* Photo gallery */
-
+/* 사진 */
 .photo-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  height: 250px;
 }
 
-.photo-slot {
-  position: relative;
-  overflow: hidden;
+.photo-grid img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
   background: #eee7e5;
 }
 
-.photo-slot img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.photo-slot label {
-  position: absolute;
-  inset: auto 8px 8px;
-  padding: 8px;
-  text-align: center;
-  color: white;
-  background: #4d404bbd;
-  font: 10px Arial, sans-serif;
-  cursor: pointer;
-}
-
-.photo-slot input {
-  display: none;
-}
-
-/* Ceremony information */
-
+/* 예식 정보 */
 .event-card {
   padding: 24px 10px;
   text-align: center;
@@ -239,13 +179,12 @@ button, input, textarea {
 }
 
 .event-date {
-  margin-bottom: 10px;
-  font-size: 19px;
-  letter-spacing: .04em;
+  font-size: 18px;
+  line-height: 1.8;
 }
 
 .event-time {
-  margin-bottom: 20px;
+  margin: 8px 0 20px;
   font-size: 13px;
 }
 
@@ -255,26 +194,22 @@ button, input, textarea {
 }
 
 .event-address {
-  margin-top: 5px;
-  font-size: 11px;
+  margin-top: 6px;
   color: var(--muted);
+  font-size: 11px;
   line-height: 1.8;
 }
 
 .action-row {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
 .action {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 110px;
-  padding: 11px 14px;
+  padding: 11px 15px;
   border: 1px solid #cfc3ca;
   color: var(--ink);
   background: transparent;
@@ -283,8 +218,7 @@ button, input, textarea {
   cursor: pointer;
 }
 
-/* Bank accounts */
-
+/* 계좌 */
 .account-list {
   display: grid;
   gap: 8px;
@@ -292,8 +226,8 @@ button, input, textarea {
 
 .account {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 10px;
   padding: 15px 12px;
   border: 1px solid #e4dcde;
@@ -317,14 +251,13 @@ button, input, textarea {
   flex-shrink: 0;
   padding: 9px 10px;
   border: 0;
-  color: var(--ink);
   background: #eee7e8;
+  color: var(--ink);
   font-size: 10px;
   cursor: pointer;
 }
 
-/* Guestbook */
-
+/* 축하 인사 */
 .guestbook input,
 .guestbook textarea {
   display: block;
@@ -348,10 +281,9 @@ button, input, textarea {
   width: 100%;
   padding: 14px;
   border: 0;
-  color: white;
   background: var(--ink);
+  color: white;
   font-size: 11px;
-  letter-spacing: .08em;
   cursor: pointer;
 }
 
@@ -359,10 +291,6 @@ button, input, textarea {
   color: var(--muted);
   font-size: 10px;
   line-height: 1.8;
-}
-
-.message-list {
-  margin-top: 16px;
 }
 
 .message {
@@ -373,13 +301,10 @@ button, input, textarea {
   overflow-wrap: anywhere;
 }
 
-.message strong {
-  margin-right: 8px;
-  font-weight: 500;
-}
+.message strong { margin-right: 8px; font-weight: 500; }
 
 .closing {
-  margin-top: 38px;
+  margin-top: 36px;
   text-align: center;
   color: var(--muted);
   font-size: 11px;
@@ -387,91 +312,107 @@ button, input, textarea {
 }
 
 @media (min-width: 700px) {
-  .details {
-    padding-top: 70px;
-  }
-
-  .photo-grid {
-    height: 320px;
-  }
+  .details { padding-top: 55px; }
+  .photo-grid img { height: 300px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  #pages { scroll-behavior: auto; }
 }
 </style>
 </head>
 
 <body>
 
-<main>
+<!--
+========================================
+[교체할 파일 주소는 여기에서 관리]
+Google Drive 공유 링크를 그대로 붙여 넣어도 됩니다.
+파일 공유 권한: 링크가 있는 모든 사용자
+========================================
+-->
 
-  <!-- PAGE 1 : 원하는 이미지 선택 -->
+<script>
+const WEDDING = {
+  // 1페이지 청첩장 이미지 주소
+  coverImage:
+    "여기에_청첩장_이미지의_Google_Drive_주소",
 
-  <section class="scene cover" id="invitation">
-    <div class="cover-inner">
+  // 2페이지 세로 영상 주소 (9:16)
+  video:
+    "여기에_세로_영상의_Google_Drive_주소",
 
-      <img
-        class="cover-image"
-        id="coverImage"
-        alt="결혼식 초대장"
-        style="display:none"
-      >
+  // 3페이지 사진 주소
+  photo1:
+    "여기에_첫번째_사진의_Google_Drive_주소",
 
-      <label class="image-picker">
-        첫 페이지 이미지 선택
-        <input
-          type="file"
-          id="coverInput"
-          accept="image/*"
-        >
-      </label>
+  photo2:
+    "여기에_두번째_사진의_Google_Drive_주소",
 
-      <div class="scroll-cue">
-        SCROLL TO BEGIN
-      </div>
+  // 예식 정보
+  date: "2026년 12월 26일 토요일",
+  time: "오후 1시 00분",
+  venue: "예식장 이름을 입력해 주세요",
+  address: "예식장 도로명 주소를 입력해 주세요",
+  mapUrl: "https://map.kakao.com/",
 
-    </div>
+  // 계좌번호
+  groomAccount: "은행명 000-000-000000",
+  brideAccount: "은행명 000-000-000000"
+};
+
+/*
+Google Drive 공유 링크를 표시용 주소로 변환합니다.
+공유 권한이 공개되어 있어야 합니다.
+*/
+function directUrl(url, type = "image") {
+  if (!url || url.startsWith("여기에_")) return "";
+
+  const match =
+    url.match(/\/file\/d\/([^/]+)/) ||
+    url.match(/\/d\/([^/]+)/) ||
+    url.match(/[?&]id=([^&]+)/);
+
+  if (match) {
+    const id = match[1];
+    if (type === "video") {
+      return "https://drive.google.com/uc?export=download&id=" + id;
+    }
+    return "https://drive.google.com/uc?export=view&id=" + id;
+  }
+
+  return url;
+}
+</script>
+
+<div id="pages">
+
+  <!-- 1페이지 -->
+  <section class="scene cover" id="page1">
+    <img id="coverImage" alt="결혼식 초대장" style="display:none">
+
+    <div class="scroll-cue">SCROLL TO BEGIN</div>
   </section>
 
-
-  <!-- PAGE 2 : 화면 전체 동영상 -->
-
-  <section class="scene film" id="film">
-
+  <!-- 2페이지: 문구나 장식 없음 -->
+  <section class="scene film" id="page2">
     <video
-      class="wedding-video"
       id="weddingVideo"
-      playsinline
+      autoplay
       muted
       loop
-      autoplay
+      playsinline
       preload="metadata"
       style="display:none"
     ></video>
-
-    <label class="video-picker">
-      9:16 영상 선택
-      <input
-        type="file"
-        id="videoInput"
-        accept="video/*"
-      >
-    </label>
-
   </section>
 
-
-  <!-- PAGE 3 : 예식 정보 -->
-
-  <section class="scene details" id="wedding-day">
+  <!-- 3페이지 -->
+  <section class="scene details" id="page3">
     <div class="details-inner">
 
       <header class="details-header">
         <div class="eyebrow">SAVE THE DATE</div>
-
         <h1>저희 결혼합니다</h1>
 
         <p class="invitation-text">
@@ -486,166 +427,74 @@ button, input, textarea {
         </p>
       </header>
 
-
-      <!-- 사진 2장 -->
-
       <div class="section-title">OUR MOMENTS</div>
 
       <div class="photo-grid">
-
-        <div class="photo-slot">
-          <img id="photo1" alt="웨딩 사진 1">
-
-          <label>
-            사진 1 선택
-            <input
-              type="file"
-              accept="image/*"
-              data-photo="photo1"
-            >
-          </label>
-        </div>
-
-        <div class="photo-slot">
-          <img id="photo2" alt="웨딩 사진 2">
-
-          <label>
-            사진 2 선택
-            <input
-              type="file"
-              accept="image/*"
-              data-photo="photo2"
-            >
-          </label>
-        </div>
-
+        <img id="photo1" alt="웨딩 사진 1" style="display:none">
+        <img id="photo2" alt="웨딩 사진 2" style="display:none">
       </div>
-
-
-      <!-- 예식 날짜와 장소 -->
 
       <div class="section-title">WEDDING CEREMONY</div>
 
       <div class="event-card">
-
-        <div class="event-date">
-          2026년 12월 26일 토요일
-        </div>
-
-        <div class="event-time">
-          오후 1시 00분
-        </div>
-
-        <div class="event-place">
-          Wedding Vienna<br>
-          Convention Hall
-        </div>
-
-        <div class="event-address" id="venueAddress">
-          예식장 도로명 주소를 입력해 주세요
-        </div>
+        <div class="event-date" id="eventDate"></div>
+        <div class="event-time" id="eventTime"></div>
+        <div class="event-place" id="eventVenue"></div>
+        <div class="event-address" id="eventAddress"></div>
 
         <div class="action-row">
-
-          <a
-            class="action"
-            id="mapLink"
-            href="https://map.kakao.com/"
-            target="_blank"
-            rel="noopener"
-          >
-            카카오맵
-          </a>
-
-          <button
-            class="action"
-            id="copyAddress"
-            type="button"
-          >
+          <a class="action" id="mapLink"
+             target="_blank" rel="noopener">카카오맵</a>
+          <button class="action" id="copyAddress" type="button">
             주소 복사
           </button>
-
         </div>
       </div>
-
-
-      <!-- 계좌번호 -->
 
       <div class="section-title">WITH LOVE</div>
 
       <div class="account-list">
-
         <div class="account">
           <div>
-            <small>신랑 측 · 예금주</small>
-            <code>은행명 000-000-000000</code>
+            <small>신랑 측 · 계좌번호</small>
+            <code id="groomAccount"></code>
           </div>
-
-          <button
-            class="copy-button"
-            type="button"
-            data-copy="은행명 000-000-000000"
-          >
+          <button class="copy-button" id="copyGroom" type="button">
             계좌 복사
           </button>
         </div>
 
         <div class="account">
           <div>
-            <small>신부 측 · 예금주</small>
-            <code>은행명 000-000-000000</code>
+            <small>신부 측 · 계좌번호</small>
+            <code id="brideAccount"></code>
           </div>
-
-          <button
-            class="copy-button"
-            type="button"
-            data-copy="은행명 000-000-000000"
-          >
+          <button class="copy-button" id="copyBride" type="button">
             계좌 복사
           </button>
         </div>
-
       </div>
-
-
-      <!-- 축하 메시지 -->
 
       <div class="section-title">GUESTBOOK</div>
 
       <form class="guestbook" id="guestbookForm">
+        <input id="guestName" maxlength="30"
+               placeholder="이름" required>
 
-        <input
-          id="guestName"
-          type="text"
-          maxlength="30"
-          placeholder="이름"
-          aria-label="이름"
-          required
-        >
-
-        <textarea
-          id="guestMessage"
-          maxlength="300"
+        <textarea id="guestMessage" maxlength="300"
           placeholder="두 사람에게 축하의 마음을 남겨 주세요."
-          aria-label="축하 메시지"
-          required
-        ></textarea>
+          required></textarea>
 
         <button class="submit-button" type="submit">
           축하 인사 남기기
         </button>
 
         <p class="guestbook-note">
-          현재 방명록은 이 페이지에서 확인하는 미리보기용입니다.
-          모든 방문객의 메시지를 저장하려면 데이터베이스 연결이 필요합니다.
+          현재 방명록은 이 브라우저에서만 확인할 수 있습니다.
+          방문객 모두가 메시지를 공유하려면 데이터베이스 연결이 필요합니다.
         </p>
 
-        <div
-          class="message-list"
-          id="messageList"
-          aria-live="polite"
-        ></div>
-
+        <div id="messageList" aria-live="polite"></div>
       </form>
 
       <div class="closing">
@@ -656,188 +505,96 @@ button, input, textarea {
     </div>
   </section>
 
-</main>
-
+</div>
 
 <script>
-/* =================================
-   PAGE 1 : 이미지 교체
-================================= */
+/* Google Drive 주소 적용 */
+function setImage(elementId, url) {
+  if (!url) return;
 
-let coverURL = "";
+  const img = document.getElementById(elementId);
+  img.src = directUrl(url, "image");
+  img.style.display = "block";
 
-document
-  .getElementById("coverInput")
-  .addEventListener("change", function () {
+  img.onerror = function () {
+    img.style.display = "none";
+    console.warn("이미지를 불러오지 못했습니다:", url);
+  };
+}
 
-    const file = this.files[0];
+setImage("coverImage", WEDDING.coverImage);
+setImage("photo1", WEDDING.photo1);
+setImage("photo2", WEDDING.photo2);
 
-    if (!file) return;
+/* 동영상 적용 */
+(function () {
+  const url = directUrl(WEDDING.video, "video");
+  if (!url) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("이미지 파일을 선택해 주세요.");
-      return;
-    }
+  const video = document.getElementById("weddingVideo");
+  video.src = url;
+  video.style.display = "block";
+  video.load();
 
-    if (coverURL) {
-      URL.revokeObjectURL(coverURL);
-    }
-
-    coverURL = URL.createObjectURL(file);
-
-    const img = document.getElementById("coverImage");
-
-    img.onload = function () {
-      img.style.display = "block";
-    };
-
-    img.src = coverURL;
+  video.play().catch(function () {
+    // 기기 또는 브라우저가 자동 재생을 제한할 수 있습니다.
   });
+})();
 
+/* 예식 정보 표시 */
+document.getElementById("eventDate").textContent = WEDDING.date;
+document.getElementById("eventTime").textContent = WEDDING.time;
+document.getElementById("eventVenue").textContent = WEDDING.venue;
+document.getElementById("eventAddress").textContent = WEDDING.address;
 
-/* =================================
-   PAGE 2 : 동영상 교체
-================================= */
+document.getElementById("mapLink").href =
+  WEDDING.mapUrl || "https://map.kakao.com/";
 
-let videoURL = "";
+document.getElementById("groomAccount").textContent =
+  WEDDING.groomAccount;
+document.getElementById("brideAccount").textContent =
+  WEDDING.brideAccount;
 
-document
-  .getElementById("videoInput")
-  .addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("video/")) {
-      alert("동영상 파일을 선택해 주세요.");
-      return;
-    }
-
-    if (videoURL) {
-      URL.revokeObjectURL(videoURL);
-    }
-
-    videoURL = URL.createObjectURL(file);
-
-    const video = document.getElementById("weddingVideo");
-
-    video.src = videoURL;
-    video.style.display = "block";
-    video.load();
-
-    video.play().catch(function () {
-      // 브라우저가 자동 재생을 제한하면
-      // 사용자가 재생을 시작해야 할 수 있습니다.
-    });
-  });
-
-
-/* =================================
-   PAGE 3 : 사진 교체
-================================= */
-
-const photoURLs = {};
-
-document.querySelectorAll("[data-photo]").forEach(function (input) {
-
-  input.addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("이미지 파일을 선택해 주세요.");
-      return;
-    }
-
-    const target = this.dataset.photo;
-
-    if (photoURLs[target]) {
-      URL.revokeObjectURL(photoURLs[target]);
-    }
-
-    photoURLs[target] = URL.createObjectURL(file);
-
-    document.getElementById(target).src = photoURLs[target];
-  });
-
-});
-
-
-/* =================================
-   주소 및 계좌 복사
-================================= */
-
+/* 복사 기능 */
 async function copyText(text) {
-
   try {
-
     await navigator.clipboard.writeText(text);
     alert("복사했습니다.");
-
   } catch (error) {
-
     const textarea = document.createElement("textarea");
-
     textarea.value = text;
     textarea.style.position = "fixed";
     textarea.style.opacity = "0";
-
     document.body.appendChild(textarea);
-
     textarea.select();
 
     const success = document.execCommand("copy");
-
     textarea.remove();
 
     alert(success ? "복사했습니다." : "복사에 실패했습니다.");
-
   }
 }
 
-document
-  .getElementById("copyAddress")
-  .addEventListener("click", function () {
+document.getElementById("copyAddress").onclick = function () {
+  copyText(WEDDING.address);
+};
 
-    const address = document
-      .getElementById("venueAddress")
-      .textContent
-      .trim();
+document.getElementById("copyGroom").onclick = function () {
+  copyText(WEDDING.groomAccount);
+};
 
-    copyText(address);
-  });
+document.getElementById("copyBride").onclick = function () {
+  copyText(WEDDING.brideAccount);
+};
 
-document.querySelectorAll("[data-copy]").forEach(function (button) {
-
-  button.addEventListener("click", function () {
-    copyText(this.dataset.copy);
-  });
-
-});
-
-
-/* =================================
-   방명록 : 현재 브라우저 미리보기용
-================================= */
-
-document
-  .getElementById("guestbookForm")
-  .addEventListener("submit", function (event) {
-
+/* 방명록: 현재 브라우저의 임시 표시 */
+document.getElementById("guestbookForm").addEventListener(
+  "submit",
+  function (event) {
     event.preventDefault();
 
-    const name = document
-      .getElementById("guestName")
-      .value
-      .trim();
-
-    const message = document
-      .getElementById("guestMessage")
-      .value
-      .trim();
+    const name = document.getElementById("guestName").value.trim();
+    const message = document.getElementById("guestMessage").value.trim();
 
     if (!name || !message) return;
 
@@ -847,17 +604,14 @@ document
     const strong = document.createElement("strong");
     strong.textContent = name;
 
-    const content = document.createElement("span");
-    content.textContent = message;
+    const span = document.createElement("span");
+    span.textContent = message;
 
-    item.appendChild(strong);
-    item.appendChild(content);
-
+    item.append(strong, span);
     document.getElementById("messageList").prepend(item);
-
     this.reset();
-  });
-
+  }
+);
 </script>
 
 </body>
