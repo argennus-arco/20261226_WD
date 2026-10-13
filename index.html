@@ -617,32 +617,18 @@ document.getElementById("guestbookForm").addEventListener(
   const details = document.getElementById("page3");
   const page2 = document.getElementById("page2");
 
-  function isAtTopOfDetails() {
-    return pages.scrollTop <= details.offsetTop + 2;
-  }
-
-  function goToPage2() {
-    pages.scrollTo({
-      top: page2.offsetTop,
-      behavior: "smooth"
-    });
-  }
-
-  details.addEventListener("wheel", function (event) {
-    if (isAtTopOfDetails() && event.deltaY < 0) {
-      event.preventDefault();
-      goToPage2();
-    }
-  }, { passive: false });
-
   let startY = 0;
   let startX = 0;
-  let moveToPage2 = false;
+  let movingToPage2 = false;
+
+  function isAtTop() {
+    return pages.scrollTop <= details.offsetTop + 2;
+  }
 
   details.addEventListener("touchstart", function (event) {
     startY = event.touches[0].clientY;
     startX = event.touches[0].clientX;
-    moveToPage2 = false;
+    movingToPage2 = false;
   }, { passive: true });
 
   details.addEventListener("touchmove", function (event) {
@@ -650,20 +636,24 @@ document.getElementById("guestbookForm").addEventListener(
     const deltaX = event.touches[0].clientX - startX;
 
     if (
-      isAtTopOfDetails() &&
+      isAtTop() &&
       deltaY > 12 &&
       Math.abs(deltaY) > Math.abs(deltaX)
     ) {
       event.preventDefault();
-      moveToPage2 = true;
+      movingToPage2 = true;
     }
   }, { passive: false });
 
   details.addEventListener("touchend", function () {
-    if (moveToPage2 && isAtTopOfDetails()) {
-      goToPage2();
+    if (movingToPage2 && isAtTop()) {
+      pages.scrollTo({
+        top: page2.offsetTop,
+        behavior: "smooth"
+      });
     }
-    moveToPage2 = false;
+
+    movingToPage2 = false;
   });
 })();
 </script>
