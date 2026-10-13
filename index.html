@@ -109,10 +109,10 @@ button, input, textarea { font: inherit; }
 /* 3페이지: 정보 */
 .details {
   background: var(--white);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: auto;
-  -webkit-overflow-scrolling: touch;
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
   padding:
     max(38px, env(safe-area-inset-top))
     22px
@@ -612,11 +612,14 @@ document.getElementById("guestbookForm").addEventListener(
 </script>
 
 <script>
-/* 3페이지 맨 위에서 위쪽 페이지로 자연스럽게 이동 */
 (function () {
   const pages = document.getElementById("pages");
   const details = document.getElementById("page3");
   const page2 = document.getElementById("page2");
+
+  function isAtTopOfDetails() {
+    return pages.scrollTop <= details.offsetTop + 2;
+  }
 
   function goToPage2() {
     pages.scrollTo({
@@ -625,37 +628,41 @@ document.getElementById("guestbookForm").addEventListener(
     });
   }
 
-  /* 마우스 휠 */
   details.addEventListener("wheel", function (event) {
-    if (details.scrollTop <= 1 && event.deltaY < 0) {
+    if (isAtTopOfDetails() && event.deltaY < 0) {
       event.preventDefault();
       goToPage2();
     }
   }, { passive: false });
 
-  /* 모바일 터치 */
   let startY = 0;
+  let startX = 0;
   let moveToPage2 = false;
 
   details.addEventListener("touchstart", function (event) {
     startY = event.touches[0].clientY;
+    startX = event.touches[0].clientX;
     moveToPage2 = false;
   }, { passive: true });
 
   details.addEventListener("touchmove", function (event) {
-    const currentY = event.touches[0].clientY;
+    const deltaY = event.touches[0].clientY - startY;
+    const deltaX = event.touches[0].clientX - startX;
 
-    if (details.scrollTop <= 1 && currentY - startY > 12) {
+    if (
+      isAtTopOfDetails() &&
+      deltaY > 12 &&
+      Math.abs(deltaY) > Math.abs(deltaX)
+    ) {
       event.preventDefault();
       moveToPage2 = true;
     }
   }, { passive: false });
 
   details.addEventListener("touchend", function () {
-    if (moveToPage2 && details.scrollTop <= 1) {
+    if (moveToPage2 && isAtTopOfDetails()) {
       goToPage2();
     }
-
     moveToPage2 = false;
   });
 })();
