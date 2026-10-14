@@ -355,10 +355,7 @@ const WEDDING = {
 
   // 계좌번호
   groomAccount: "은행명 000-000-000000",
-  brideAccount: "하나은행 104-891264-84807",
-
-  // 방명록 Google Apps Script 웹 앱 주소 (새로 추가할 줄)
-  guestbookUrl: "https://script.google.com/macros/s/AKfycbzxlrQTjmKRsp_N3cxqq6OkWhi6rEtDQYkt2EUtoOpfbNZ_kYtx6ovf3EIijXhtSSii/exec"
+  brideAccount: "하나은행 104-891264-84807"
 };
 
 /*
@@ -588,19 +585,16 @@ document.getElementById("copyBride").onclick = function () {
 };
 
 /* 방명록: 현재 브라우저의 임시 표시 */
-// 1. 상단 WEDDING 객체 내부에 아래 줄을 추가해 줘.
-// guestbookUrl: "여기에_복사한_웹앱_URL_붙여넣기"
+document.getElementById("guestbookForm").addEventListener(
+  "submit",
+  function (event) {
+    event.preventDefault();
 
-/* 2. 기존 방명록 스크립트를 대체할 구글 드라이브(시트) 연동 코드 */
-(function () {
-  const form = document.getElementById("guestbookForm");
-  const list = document.getElementById("messageList");
-  const note = document.querySelector(".guestbook-note");
-  const submitBtn = form.querySelector(".submit-button");
-  const apiUrl = WEDDING.guestbookUrl;
+    const name = document.getElementById("guestName").value.trim();
+    const message = document.getElementById("guestMessage").value.trim();
 
-  // XSS 방지를 유지하면서 메시지 DOM 요소를 생성하는 함수
-  function createMessageItem(name, message) {
+    if (!name || !message) return;
+
     const item = document.createElement("div");
     item.className = "message";
 
@@ -611,63 +605,12 @@ document.getElementById("copyBride").onclick = function () {
     span.textContent = message;
 
     item.append(strong, span);
-    return item;
+    document.getElementById("messageList").prepend(item);
+    this.reset();
   }
+);
+</script>
 
-  // 구글 시트 URL이 정상 입력된 경우 안내 문구 숨김 및 초기 데이터 로드
-  if (apiUrl && apiUrl.startsWith("https://script.google.com/")) {
-    if (note) note.style.display = "none";
-
-    fetch(apiUrl)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        list.innerHTML = "";
-        data.forEach(function (entry) {
-          list.appendChild(createMessageItem(entry.name, entry.message));
-        });
-      })
-      .catch(function (err) {
-        console.warn("방명록을 불러오지 못했습니다:", err);
-      });
-  }
-
-  // 방명록 작성 및 전송 이벤트
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const name = document.getElementById("guestName").value.trim();
-    const message = document.getElementById("guestMessage").value.trim();
-
-    if (!name || !message) return;
-
-    // 1) 낙관적 UI: 화면에 즉시 표시
-    const newItem = createMessageItem(name, message);
-    list.prepend(newItem);
-    form.reset();
-
-    // 2) 구글 드라이브(시트)로 백그라운드 전송
-    if (apiUrl && apiUrl.startsWith("https://script.google.com/")) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "전송 중...";
-
-      fetch(apiUrl, {
-        method: "POST",
-        // CORS 프리플라이트 우회를 위해 text/plain 사용
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ name: name, message: message })
-      })
-        .catch(function (err) {
-          console.error("방명록 저장 실패:", err);
-          alert("저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-          newItem.remove();
-        })
-        .finally(function () {
-          submitBtn.disabled = false;
-          submitBtn.textContent = "축하 인사 남기기";
-        });
-    }
-  });
-})();
 <script>
 (function () {
   const pages = document.getElementById("pages");
