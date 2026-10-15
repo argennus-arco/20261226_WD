@@ -14,9 +14,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
 
-<!-- 오픈소스 인터랙티브 지도(Leaflet) 스타일시트 -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-
 <style>
 :root {
   --ink: #4d404b;
@@ -101,7 +98,7 @@ button, input, textarea { font: inherit; }
   background: #b9aab2;
 }
 
-/* 2페이지: 전체 화면 영상 */
+/* 2페이지: 전체 화면 영상 및 사운드 오버레이 */
 .film {
   background: #000;
 }
@@ -114,6 +111,43 @@ button, input, textarea { font: inherit; }
   height: 100%;
   object-fit: cover;
   background: #000;
+}
+
+.sound-toggle {
+  position: absolute;
+  right: 20px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font: 10px Arial, sans-serif;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.sound-toggle:hover,
+.sound-toggle:active {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.sound-toggle svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* 3페이지: 정보 */
@@ -177,7 +211,7 @@ button, input, textarea { font: inherit; }
   background: #eee7e5;
 }
 
-/* 예식 정보 및 동선 지도 */
+/* 예식 정보 및 구글 지도 */
 .event-card {
   padding: 24px 10px;
   text-align: center;
@@ -207,42 +241,18 @@ button, input, textarea { font: inherit; }
   line-height: 1.8;
 }
 
-/* 동선 지도 영역 */
 .map-wrap {
-  margin: 18px 0 10px;
+  margin: 18px 0 14px;
   border: 1px solid var(--line);
   background: var(--paper);
+  overflow: hidden;
 }
 
-#routeMap {
+.google-map {
+  display: block;
   width: 100%;
-  height: 220px;
-  z-index: 1;
-}
-
-/* 청첩장 톤에 맞춘 따뜻한 지도 색감 보정 */
-.leaflet-tile-pane {
-  filter: sepia(0.18) saturate(0.75) contrast(0.95);
-}
-
-.map-pin-label {
-  background: var(--ink);
-  color: var(--white);
-  padding: 3px 8px;
-  font-size: 10px;
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  white-space: nowrap;
-}
-
-.route-status {
-  padding: 8px 10px;
-  border-top: 1px solid var(--line);
-  background: #faf7f2;
-  color: var(--ink);
-  font-size: 11px;
-  line-height: 1.5;
+  height: 230px;
+  border: 0;
 }
 
 .action-row {
@@ -254,6 +264,8 @@ button, input, textarea { font: inherit; }
 }
 
 .action {
+  flex: 1 1 auto;
+  min-width: 96px;
   padding: 10px 13px;
   border: 1px solid #cfc3ca;
   color: var(--ink);
@@ -264,9 +276,9 @@ button, input, textarea { font: inherit; }
   transition: background 0.2s;
 }
 
-.action.primary-action {
+.action:hover,
+.action:active {
   background: #eee7e8;
-  border-color: #dfd4d8;
 }
 
 /* 계좌 */
@@ -344,20 +356,12 @@ button, input, textarea { font: inherit; }
 }
 
 .guestbook-note {
+  margin: 10px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.8;
+  text-align: center;
 }
-
-.message {
-  padding: 12px 4px;
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
-  line-height: 1.8;
-  overflow-wrap: anywhere;
-}
-
-.message strong { margin-right: 8px; font-weight: 500; }
 
 .closing {
   margin-top: 36px;
@@ -370,7 +374,7 @@ button, input, textarea { font: inherit; }
 @media (min-width: 700px) {
   .details { padding-top: 55px; }
   .photo-grid img { height: 300px; }
-  #routeMap { height: 260px; }
+  .google-map { height: 270px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -404,14 +408,9 @@ const WEDDING = {
   venue: "예식장 이름을 입력해 주세요",
   address: "서울특별시 중구 세종대로 110",
 
-  // [예식장 좌표] 네이버/구글 지도에서 우클릭 후 복사한 위도(lat), 경도(lng)
+  // [예식장 좌표] 구글 지도 표시 및 카카오/네이버 길찾기 연동용 위도(lat), 경도(lng)
   lat: 35.8602666,
   lng: 128.5668793,
-
-  // [기본 동선 출발지] 가까운 지하철역 출구나 주차장 입구 좌표 (지도에 자동 표시됨)
-  startName: "내당역 3번 출구",
-  startLat: 35.860153,
-  startLng: 128.5646519,
 
   // 계좌번호
   groomAccount: "은행명 000-000-000000",
@@ -459,6 +458,18 @@ function directUrl(url, type = "image") {
       preload="metadata"
       style="display:none"
     ></video>
+
+    <!-- 소리 켜기/끄기 오버레이 버튼 -->
+    <button
+      id="soundToggle"
+      class="sound-toggle"
+      type="button"
+      aria-label="소리 켜기"
+      style="display:none"
+    >
+      <span id="soundIcon" aria-hidden="true"></span>
+      <span id="soundLabel">SOUND OFF</span>
+    </button>
   </section>
 
   <!-- 3페이지 -->
@@ -496,23 +507,24 @@ function directUrl(url, type = "image") {
         <div class="event-place" id="eventVenue"></div>
         <div class="event-address" id="eventAddress"></div>
 
-        <!-- 자동 동선 표시 지도 -->
+        <!-- 구글 지도 표시 영역 -->
         <div class="map-wrap">
-          <div id="routeMap" aria-label="예식장 이동 동선 지도"></div>
-          <div class="route-status" id="routeStatus">
-            오시는 길 동선을 불러오는 중입니다...
-          </div>
+          <iframe
+            id="googleMap"
+            class="google-map"
+            title="예식장 위치 구글 지도"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+          ></iframe>
         </div>
 
         <div class="action-row">
-          <button class="action primary-action" id="myRouteBtn" type="button">
-            내 위치에서 동선 보기
-          </button>
           <button class="action" id="kakaoRouteBtn" type="button">
-            카카오맵 길찾기
+            카카오맵
           </button>
           <button class="action" id="naverRouteBtn" type="button">
-            네이버지도 길찾기
+            네이버지도
           </button>
           <button class="action" id="copyAddress" type="button">
             주소 복사
@@ -557,11 +569,9 @@ function directUrl(url, type = "image") {
           축하 인사 남기기
         </button>
 
-        <p class="guestbook-note">
-          방명록을 불러오는 중입니다...
+        <p class="guestbook-note" id="guestbookNote">
+          남겨주신 축하 인사는 두 사람에게 소중히 전달됩니다.
         </p>
-
-        <div id="messageList" aria-live="polite"></div>
       </form>
 
       <div class="closing">
@@ -573,9 +583,6 @@ function directUrl(url, type = "image") {
   </section>
 
 </div>
-
-<!-- 오픈소스 지도 라이브러리(Leaflet) 스크립트 -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <script>
 /* 이미지 적용 */
@@ -596,17 +603,47 @@ setImage("coverImage", WEDDING.coverImage);
 setImage("photo1", WEDDING.photo1);
 setImage("photo2", WEDDING.photo2);
 
-/* 동영상 로드 및 2페이지 진입 시 자동 재생 */
+/* 동영상 로드, 자동 재생 및 사운드 오버레이 제어 */
 (function () {
   const url = directUrl(WEDDING.video, "video");
   if (!url) return;
 
   const video = document.getElementById("weddingVideo");
   const page2 = document.getElementById("page2");
+  const soundToggle = document.getElementById("soundToggle");
+  const soundIcon = document.getElementById("soundIcon");
+  const soundLabel = document.getElementById("soundLabel");
+
+  const iconMuted =
+    '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
+  const iconUnmuted =
+    '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>';
+
+  function updateSoundUI() {
+    if (video.muted) {
+      soundIcon.innerHTML = iconMuted;
+      soundLabel.textContent = "SOUND OFF";
+      soundToggle.setAttribute("aria-label", "소리 켜기");
+    } else {
+      soundIcon.innerHTML = iconUnmuted;
+      soundLabel.textContent = "SOUND ON";
+      soundToggle.setAttribute("aria-label", "소리 끄기");
+    }
+  }
 
   video.src = url;
   video.style.display = "block";
+  soundToggle.style.display = "inline-flex";
+  updateSoundUI();
   video.load();
+
+  soundToggle.addEventListener("click", function () {
+    video.muted = !video.muted;
+    if (video.paused) {
+      video.play().catch(function () {});
+    }
+    updateSoundUI();
+  });
 
   if ("IntersectionObserver" in window && page2) {
     const observer = new IntersectionObserver(
@@ -668,279 +705,77 @@ document.getElementById("copyBride").onclick = function () {
   copyText(WEDDING.brideAccount);
 };
 
-/* =====================================================
-   자동 동선 시각화 지도 & 카카오맵·네이버지도 길찾기 연동
-   ===================================================== */
+/* 구글 지도 표시 & 카카오맵·네이버지도 연동 */
 (function () {
-  const statusEl = document.getElementById("routeStatus");
-  const destLat = Number(WEDDING.lat) || 37.5665;
-  const destLng = Number(WEDDING.lng) || 126.9780;
+  const destLat = Number(WEDDING.lat);
+  const destLng = Number(WEDDING.lng);
+  const hasCoords = !isNaN(destLat) && !isNaN(destLng) && destLat !== 0 && destLng !== 0;
   const venueName = WEDDING.venue || "예식장";
 
-  // 하객 현위치 캐시 (한 번 측정하면 카카오/네이버 길찾기에도 즉시 활용)
-  let guestCoords = null;
-  let map = null;
-  let routeLayerGroup = null;
+  // 1. 구글 지도 임베드 설정 (좌표 우선, 없을 경우 주소 기준)
+  const mapEl = document.getElementById("googleMap");
+  if (mapEl) {
+    const mapQuery = hasCoords
+      ? destLat + "," + destLng
+      : (WEDDING.address || venueName);
 
-  // 1. 지도 초기화
-  if (typeof L !== "undefined") {
-    map = L.map("routeMap", {
-      center: [destLat, destLng],
-      zoom: 16,
-      zoomControl: false,
-      attributionControl: false
-    });
-
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19
-    }).addTo(map);
-
-    routeLayerGroup = L.layerGroup().addTo(map);
-
-    // 3페이지 스크롤 진입 시 지도 크기 재계산 및 기본 동선 자동 렌더링
-    const page3 = document.getElementById("page3");
-    if ("IntersectionObserver" in window && page3) {
-      const mapObserver = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              setTimeout(function () { map.invalidateSize(); }, 150);
-            }
-          });
-        },
-        { threshold: 0.1 }
-      );
-      mapObserver.observe(page3);
-    }
+    mapEl.src =
+      "https://maps.google.com/maps?q=" +
+      encodeURIComponent(mapQuery) +
+      "&hl=ko&z=16&output=embed";
   }
 
-  // 2. 출발지 -> 예식장 실제 도로/보행 동선 그리기 함수 (OSRM 라우팅 연동)
-  function drawRouteOnMap(sLat, sLng, sLabel, modeText) {
-    if (!map || !routeLayerGroup) return;
-
-    routeLayerGroup.clearLayers();
-
-    const startIcon = L.divIcon({
-      className: "",
-      html: '<span class="map-pin-label" style="background:#92848d;">' + sLabel + '</span>',
-      iconAnchor: [35, 12]
-    });
-
-    const destIcon = L.divIcon({
-      className: "",
-      html: '<span class="map-pin-label">' + venueName + '</span>',
-      iconAnchor: [40, 12]
-    });
-
-    L.marker([sLat, sLng], { icon: startIcon }).addTo(routeLayerGroup);
-    L.marker([destLat, destLng], { icon: destIcon }).addTo(routeLayerGroup);
-
-    // OSRM 공개 라우팅 서버로 실제 도로 경로 좌표 요청
-    const osrmUrl =
-      "https://router.project-osrm.org/route/v1/driving/" +
-      sLng + "," + sLat + ";" + destLng + "," + destLat +
-      "?overview=full&geometries=geojson";
-
-    fetch(osrmUrl)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.routes && data.routes.length) {
-          const route = data.routes[0];
-          const coords = route.geometry.coordinates.map(function (c) {
-            return [c[1], c[0]];
-          });
-
-          const poly = L.polyline(coords, {
-            color: "#4d404b",
-            weight: 4,
-            opacity: 0.85,
-            dashArray: "6, 6"
-          }).addTo(routeLayerGroup);
-
-          map.fitBounds(poly.getBounds(), { padding: [36, 36] });
-
-          const distKm = (route.distance / 1000).toFixed(1);
-          statusEl.textContent =
-            modeText + " · 이동 동선 약 " + distKm + "km";
-        } else {
-          throw new Error("No route");
-        }
-      })
-      .catch(function () {
-        // 네트워크 제한 시 직선 동선 폴백 표시
-        const fallbackLine = L.polyline(
-          [[sLat, sLng], [destLat, destLng]],
-          { color: "#4d404b", weight: 3, dashArray: "5, 5" }
-        ).addTo(routeLayerGroup);
-
-        map.fitBounds(fallbackLine.getBounds(), { padding: [36, 36] });
-        statusEl.textContent = modeText + " 동선이 지도에 표시되었습니다.";
-      });
-  }
-
-  // 3. 페이지 로드 시 기본 안내 동선(지하철역/기준점 -> 예식장) 자동 실행
-  if (WEDDING.startLat && WEDDING.startLng) {
-    drawRouteOnMap(
-      Number(WEDDING.startLat),
-      Number(WEDDING.startLng),
-      WEDDING.startName || "출발 기준점",
-      (WEDDING.startName || "기준점") + " → 예식장 추천 동선"
-    );
-  } else if (map) {
-    L.marker([destLat, destLng]).addTo(routeLayerGroup);
-    statusEl.textContent = "아래 버튼을 누르면 내 위치 기준 동선을 자동으로 안내합니다.";
-  }
-
-  // 4. 하객 현위치 GPS 취득 헬퍼 함수
-  function getGuestLocation(callback) {
-    if (guestCoords) {
-      callback(guestCoords);
-      return;
-    }
-    if (!("geolocation" in navigator)) {
-      callback(null);
-      return;
-    }
-    statusEl.textContent = "현재 위치를 확인하여 동선을 계산하고 있습니다...";
-    navigator.geolocation.getCurrentPosition(
-      function (pos) {
-        guestCoords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        };
-        callback(guestCoords);
-      },
-      function () {
-        callback(null);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
-    );
-  }
-
-  // [버튼 1] 내 위치에서 동선 보기 (청첩장 지도 위 실시간 경로 렌더링)
-  document.getElementById("myRouteBtn").onclick = function () {
-    getGuestLocation(function (coords) {
-      if (!coords) {
-        alert("위치 정보 권한을 허용해 주시면 내 위치 기준 동선이 표시됩니다.");
-        statusEl.textContent = "위치 권한 미허용 · 기본 동선을 표시 중입니다.";
-        return;
-      }
-      drawRouteOnMap(coords.lat, coords.lng, "현위치", "현위치 → 예식장 실시간 경로");
-    });
-  };
-
-  // [버튼 2] 카카오맵 자동 길찾기 (현위치 -> 예식장 동선 즉시 실행)
+  // 2. 카카오맵 길찾기
   document.getElementById("kakaoRouteBtn").onclick = function () {
-    getGuestLocation(function (coords) {
-      let url = "";
-      if (coords) {
-        url =
-          "https://map.kakao.com/link/from/" +
-          encodeURIComponent("현위치") + "," + coords.lat + "," + coords.lng +
-          "/to/" +
-          encodeURIComponent(venueName) + "," + destLat + "," + destLng;
-      } else {
-        url =
-          "https://map.kakao.com/link/to/" +
-          encodeURIComponent(venueName) + "," + destLat + "," + destLng;
-      }
-      window.open(url, "_blank", "noopener");
-    });
+    const url = hasCoords
+      ? "https://map.kakao.com/link/to/" +
+        encodeURIComponent(venueName) + "," + destLat + "," + destLng
+      : "https://map.kakao.com/link/search/" +
+        encodeURIComponent(WEDDING.address || venueName);
+
+    window.open(url, "_blank", "noopener");
   };
 
-  // [버튼 3] 네이버지도 자동 길찾기 (모바일 앱 딥링크 + 웹 길찾기 자동 폴백)
+  // 3. 네이버지도 길찾기
   document.getElementById("naverRouteBtn").onclick = function () {
-    getGuestLocation(function (coords) {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const encodedVenue = encodeURIComponent(venueName);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const encodedVenue = encodeURIComponent(venueName);
 
-      if (isMobile) {
-        // 모바일: 네이버지도 앱 길찾기 스키마 (출발지 현위치 자동 매칭)
-        let appUrl =
-          "nmap://route/public?dlat=" + destLat +
-          "&dlng=" + destLng +
-          "&dname=" + encodedVenue +
-          "&appname=" + encodeURIComponent(window.location.origin);
+    if (isMobile && hasCoords) {
+      const appUrl =
+        "nmap://route/public?dlat=" + destLat +
+        "&dlng=" + destLng +
+        "&dname=" + encodedVenue +
+        "&appname=" + encodeURIComponent(window.location.origin);
 
-        if (coords) {
-          appUrl =
-            "nmap://route/public?slat=" + coords.lat +
-            "&slng=" + coords.lng +
-            "&sname=" + encodeURIComponent("현위치") +
-            "&dlat=" + destLat +
-            "&dlng=" + destLng +
-            "&dname=" + encodedVenue +
-            "&appname=" + encodeURIComponent(window.location.origin);
+      const webFallbackUrl =
+        "https://m.map.naver.com/route.nhn?menu=route&ename=" +
+        encodedVenue + "&ex=" + destLng + "&ey=" + destLat +
+        "&pathType=1&showMap=true";
+
+      const clickedAt = Date.now();
+      window.location.href = appUrl;
+
+      setTimeout(function () {
+        if (Date.now() - clickedAt < 1600) {
+          window.open(webFallbackUrl, "_blank", "noopener");
         }
-
-        // 앱 미설치 시 1.2초 후 모바일 웹 길찾기 화면으로 자동 이동
-        const webFallbackUrl = coords
-          ? "https://m.map.naver.com/route.nhn?menu=route&sname=" +
-            encodeURIComponent("현위치") + "&sx=" + coords.lng + "&sy=" + coords.lat +
-            "&ename=" + encodedVenue + "&ex=" + destLng + "&ey=" + destLat +
-            "&pathType=1&showMap=true"
-          : "https://m.map.naver.com/route.nhn?menu=route&ename=" +
-            encodedVenue + "&ex=" + destLng + "&ey=" + destLat +
-            "&pathType=1&showMap=true";
-
-        const clickedAt = Date.now();
-        window.location.href = appUrl;
-
-        setTimeout(function () {
-          if (Date.now() - clickedAt < 1600) {
-            window.open(webFallbackUrl, "_blank", "noopener");
-          }
-        }, 1200);
-      } else {
-        // PC 환경: 네이버 지도 웹 검색 및 길찾기 창 열기
-        const pcUrl =
-          "https://map.naver.com/p/search/" +
-          encodeURIComponent(WEDDING.address || venueName);
-        window.open(pcUrl, "_blank", "noopener");
-      }
-    });
+      }, 1200);
+    } else {
+      const pcUrl =
+        "https://map.naver.com/p/search/" +
+        encodeURIComponent(WEDDING.address || venueName);
+      window.open(pcUrl, "_blank", "noopener");
+    }
   };
 })();
 
-/* 구글 드라이브(시트) 방명록 연동 */
+/* 구글 드라이브(시트) 방명록 저장 전용 (페이지 미표시) */
 (function () {
   const form = document.getElementById("guestbookForm");
-  const list = document.getElementById("messageList");
-  const note = document.querySelector(".guestbook-note");
+  const note = document.getElementById("guestbookNote");
   const submitBtn = form.querySelector(".submit-button");
   const apiUrl = WEDDING.guestbookUrl;
-
-  function createMessageItem(name, message) {
-    const item = document.createElement("div");
-    item.className = "message";
-
-    const strong = document.createElement("strong");
-    strong.textContent = name;
-
-    const span = document.createElement("span");
-    span.textContent = message;
-
-    item.append(strong, span);
-    return item;
-  }
-
-  if (apiUrl && apiUrl.startsWith("https://script.google.com/")) {
-    fetch(apiUrl)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (note) note.style.display = "none";
-        list.innerHTML = "";
-        data.forEach(function (entry) {
-          list.appendChild(createMessageItem(entry.name, entry.message));
-        });
-      })
-      .catch(function (err) {
-        console.warn("방명록을 불러오지 못했습니다:", err);
-        if (note) note.textContent = "방명록을 불러오지 못했습니다. 배포 권한 설정을 확인해 주세요.";
-      });
-  } else {
-    if (note) note.textContent = "구글 스크립트 URL이 아직 연결되지 않았습니다.";
-  }
 
   form.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -950,35 +785,38 @@ document.getElementById("copyBride").onclick = function () {
 
     if (!name || !message) return;
 
-    const newItem = createMessageItem(name, message);
-    list.prepend(newItem);
-    form.reset();
-
-    if (apiUrl && apiUrl.startsWith("https://script.google.com/")) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "전송 중...";
-
-      fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ name: name, message: message })
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (result) {
-          if (result.status !== "success") {
-            throw new Error(result.message || "서버 오류");
-          }
-        })
-        .catch(function (err) {
-          console.error("방명록 저장 실패:", err);
-          alert("저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-          newItem.remove();
-        })
-        .finally(function () {
-          submitBtn.disabled = false;
-          submitBtn.textContent = "축하 인사 남기기";
-        });
+    if (!apiUrl || !apiUrl.startsWith("https://script.google.com/")) {
+      alert("구글 스크립트 URL이 아직 연결되지 않았습니다.");
+      return;
     }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "전송 중...";
+
+    fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: name, message: message })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (result.status !== "success") {
+          throw new Error(result.message || "서버 오류");
+        }
+        form.reset();
+        if (note) {
+          note.textContent = "소중한 축하 인사가 전달되었습니다. 감사합니다.";
+        }
+        alert("축하 인사가 전달되었습니다. 감사합니다.");
+      })
+      .catch(function (err) {
+        console.error("방명록 저장 실패:", err);
+        alert("저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      })
+      .finally(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "축하 인사 남기기";
+      });
   });
 })();
 </script>
