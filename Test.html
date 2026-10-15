@@ -1028,7 +1028,7 @@ document.getElementById("copyBride").onclick = function () {
         }
         form.reset();
         if (note) {
-          note.textContent = "소중한 축하 인사가 전달되었습니다. 감사합니다.";
+          note.textContent = "";
         }
         alert("축하 인사가 전달되었습니다. 감사합니다.");
       })
@@ -1038,7 +1038,7 @@ document.getElementById("copyBride").onclick = function () {
       })
       .finally(function () {
         submitBtn.disabled = false;
-        submitBtn.textContent = "축하 인사 남기기";
+        submitBtn.textContent = "방명록 작성";
       });
   });
 })();
