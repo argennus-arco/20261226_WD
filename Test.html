@@ -7,7 +7,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="저희 결혼합니다 | 2026. 12. 26.">
 <meta property="og:description" content="시간을 건너 다시 마주한 두 사람의 시작에 귀한 걸음을 보태어 주세요.">
-<meta property="og:image" content="https://raw.githubusercontent.com/argennus-arco/20261226_WD/main/bg.png">
+<meta property="og:image" content="https://argennus-arco.github.io/20261226_WD/bg.png">
 <title>Wedding Invitation</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -196,7 +196,7 @@ button, input, textarea { font: inherit; }
 
 .section-title { margin: 30px 0 18px; }
 
-/* 사진 */
+/* 사진 그리드 (클릭 시 확대 가능) */
 .photo-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -209,7 +209,108 @@ button, input, textarea { font: inherit; }
   height: 230px;
   object-fit: cover;
   background: #eee7e5;
+  cursor: zoom-in;
+  transition: opacity 0.2s;
 }
+
+.photo-grid img:active {
+  opacity: 0.85;
+}
+
+/* 사진 확대 모달 (Lightbox) */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(56px, env(safe-area-inset-top))
+    16px
+    max(48px, env(safe-area-inset-bottom));
+  background: rgba(18, 15, 17, 0.92);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  user-select: none;
+}
+
+.lightbox.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightbox img {
+  display: block;
+  max-width: 100%;
+  max-height: 82dvh;
+  object-fit: contain;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  transform: scale(0.97);
+  transition: transform 0.25s ease;
+}
+
+.lightbox.is-open img {
+  transform: scale(1);
+}
+
+.lightbox-counter {
+  position: absolute;
+  top: max(24px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  font: 11px Arial, sans-serif;
+  letter-spacing: 0.2em;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lightbox-nav:hover,
+.lightbox-nav:active {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.lightbox-prev { left: 12px; }
+.lightbox-next { right: 12px; }
 
 /* 예식 정보 및 구글 지도 */
 .event-card {
@@ -387,20 +488,23 @@ button, input, textarea { font: inherit; }
 
 <script>
 const WEDDING = {
-  // 1페이지 청첩장 이미지 주소
+  // 1페이지 청첩장 이미지 주소 (GitHub Pages CDN 경로 권장)
   coverImage:
-    "https://raw.githubusercontent.com/argennus-arco/20261226_WD/main/bg.png",
+    "https://argennus-arco.github.io/20261226_WD/bg.png",
 
   // 2페이지 세로 영상 주소 (9:16)
   video:
     "https://argennus-arco.github.io/20261226_WD/edit.mp4",
 
-  // 3페이지 사진 주소
-  photo1:
-    "여기에_첫번째_사진의_Google_Drive_주소",
-
-  photo2:
-    "여기에_두번째_사진의_Google_Drive_주소",
+  // 3페이지 웨딩 사진 목록 (원하는 개수만큼 줄을 추가하거나 삭제하면 자동 반영됩니다)
+  photos: [
+    "https://argennus-arco.github.io/20261226_WD/photo1.jpg",
+    "https://argennus-arco.github.io/20261226_WD/photo2.jpg",
+    "https://argennus-arco.github.io/20261226_WD/photo3.jpg",
+    "https://argennus-arco.github.io/20261226_WD/photo4.jpg",
+    "https://argennus-arco.github.io/20261226_WD/photo5.jpg",
+    "https://argennus-arco.github.io/20261226_WD/photo6.jpg"
+  ],
 
   // 예식 기본 정보
   date: "2026년 12월 26일 토요일",
@@ -494,10 +598,8 @@ function directUrl(url, type = "image") {
 
       <div class="section-title">OUR MOMENTS</div>
 
-      <div class="photo-grid">
-        <img id="photo1" alt="웨딩 사진 1" style="display:none">
-        <img id="photo2" alt="웨딩 사진 2" style="display:none">
-      </div>
+      <!-- 사진 배열이 자동으로 렌더링되는 영역 -->
+      <div class="photo-grid" id="photoGrid"></div>
 
       <div class="section-title">WEDDING CEREMONY</div>
 
@@ -584,24 +686,147 @@ function directUrl(url, type = "image") {
 
 </div>
 
+<!-- 사진 클릭 시 확대 모달 (좌우 넘기기 지원) -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+  <button class="lightbox-close" id="lightboxClose" type="button" aria-label="닫기">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="이전 사진">&#8249;</button>
+  <img id="lightboxImage" alt="확대된 웨딩 사진">
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="다음 사진">&#8250;</button>
+</div>
+
 <script>
-/* 이미지 적용 */
-function setImage(elementId, url) {
-  if (!url) return;
+/* 1페이지 커버 이미지 적용 */
+(function () {
+  const coverUrl = directUrl(WEDDING.coverImage, "image");
+  if (!coverUrl) return;
 
-  const img = document.getElementById(elementId);
-  img.src = directUrl(url, "image");
-  img.style.display = "block";
-
-  img.onerror = function () {
-    img.style.display = "none";
-    console.warn("이미지를 불러오지 못했습니다:", url);
+  const coverImg = document.getElementById("coverImage");
+  coverImg.src = coverUrl;
+  coverImg.style.display = "block";
+  coverImg.onerror = function () {
+    coverImg.style.display = "none";
   };
-}
+})();
 
-setImage("coverImage", WEDDING.coverImage);
-setImage("photo1", WEDDING.photo1);
-setImage("photo2", WEDDING.photo2);
+/* 3페이지 갤러리 동적 생성 및 클릭 확대(Lightbox) 연동 */
+(function () {
+  const photoGrid = document.getElementById("photoGrid");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImage = document.getElementById("lightboxImage");
+  const lightboxCounter = document.getElementById("lightboxCounter");
+  const lightboxClose = document.getElementById("lightboxClose");
+  const lightboxPrev = document.getElementById("lightboxPrev");
+  const lightboxNext = document.getElementById("lightboxNext");
+
+  // 유효한 사진 주소만 필터링
+  const validPhotos = (WEDDING.photos || [])
+    .map(function (url) { return directUrl(url, "image"); })
+    .filter(Boolean);
+
+  let currentIndex = 0;
+
+  function updateLightboxView() {
+    if (!validPhotos.length) return;
+    lightboxImage.src = validPhotos[currentIndex];
+    lightboxImage.alt = "웨딩 사진 " + (currentIndex + 1);
+    lightboxCounter.textContent = (currentIndex + 1) + " / " + validPhotos.length;
+
+    const showNav = validPhotos.length > 1 ? "flex" : "none";
+    lightboxPrev.style.display = showNav;
+    lightboxNext.style.display = showNav;
+  }
+
+  function openLightbox(index) {
+    currentIndex = index;
+    updateLightboxView();
+    lightbox.classList.add("is-open");
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove("is-open");
+    setTimeout(function () {
+      if (!lightbox.classList.contains("is-open")) {
+        lightboxImage.removeAttribute("src");
+      }
+    }, 250);
+  }
+
+  function showPrev() {
+    if (!validPhotos.length) return;
+    currentIndex = (currentIndex - 1 + validPhotos.length) % validPhotos.length;
+    updateLightboxView();
+  }
+
+  function showNext() {
+    if (!validPhotos.length) return;
+    currentIndex = (currentIndex + 1) % validPhotos.length;
+    updateLightboxView();
+  }
+
+  // 사진 그리드 렌더링
+  validPhotos.forEach(function (src, index) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "웨딩 사진 " + (index + 1);
+    img.loading = "lazy";
+    img.decoding = "async";
+
+    img.addEventListener("click", function () {
+      openLightbox(index);
+    });
+
+    img.onerror = function () {
+      img.style.display = "none";
+      console.warn("이미지를 불러오지 못했습니다:", src);
+    };
+
+    photoGrid.appendChild(img);
+  });
+
+  // 모달 버튼 이벤트
+  lightboxClose.addEventListener("click", closeLightbox);
+  lightboxPrev.addEventListener("click", function (e) {
+    e.stopPropagation();
+    showPrev();
+  });
+  lightboxNext.addEventListener("click", function (e) {
+    e.stopPropagation();
+    showNext();
+  });
+
+  lightbox.addEventListener("click", function (event) {
+    if (event.target === lightbox) {
+      closeLightbox();
+    }
+  });
+
+  // 키보드 방향키 및 ESC 지원
+  document.addEventListener("keydown", function (event) {
+    if (!lightbox.classList.contains("is-open")) return;
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") showPrev();
+    if (event.key === "ArrowRight") showNext();
+  });
+
+  // 모바일 터치 좌우 스와이프 지원
+  let touchStartX = 0;
+  lightbox.addEventListener("touchstart", function (event) {
+    touchStartX = event.changedTouches[0].screenX;
+  }, { passive: true });
+
+  lightbox.addEventListener("touchend", function (event) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        showPrev();
+      } else {
+        showNext();
+      }
+    }
+  }, { passive: true });
+})();
 
 /* 동영상 로드, 자동 재생 및 사운드 오버레이 제어 */
 (function () {
