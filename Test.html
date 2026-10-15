@@ -508,17 +508,17 @@ const WEDDING = {
 
   // 예식 기본 정보
   date: "2026년 12월 26일 토요일",
-  time: "오후 1시 00분",
-  venue: "예식장 이름을 입력해 주세요",
-  address: "서울특별시 중구 세종대로 110",
+  time: "오후 1시",
+  venue: "웨딩비엔나 컨벤션홀 4층",
+  address: "대구 달서구 달구벌대로 1846",
 
   // [예식장 좌표] 구글 지도 표시 및 카카오/네이버 길찾기 연동용 위도(lat), 경도(lng)
   lat: 35.8602666,
   lng: 128.5668793,
 
   // 계좌번호
-  groomAccount: "은행명 000-000-000000",
-  brideAccount: "은행명 000-000-000000",
+  groomAccount: "대구은행 508-13-998184-3",
+  brideAccount: "하나은행 104-891264-84807",
 
   // 방명록 Google Apps Script 웹 앱 URL
   guestbookUrl: "https://script.google.com/macros/s/복사한_주소_전체/exec"
@@ -639,7 +639,7 @@ function directUrl(url, type = "image") {
       <div class="account-list">
         <div class="account">
           <div>
-            <small>신랑 측 · 계좌번호</small>
+            <small>장은우 신랑 측 · 계좌번호</small>
             <code id="groomAccount"></code>
           </div>
           <button class="copy-button" id="copyGroom" type="button">
@@ -649,7 +649,7 @@ function directUrl(url, type = "image") {
 
         <div class="account">
           <div>
-            <small>신부 측 · 계좌번호</small>
+            <small>정진영 신부 측 · 계좌번호</small>
             <code id="brideAccount"></code>
           </div>
           <button class="copy-button" id="copyBride" type="button">
@@ -658,7 +658,7 @@ function directUrl(url, type = "image") {
         </div>
       </div>
 
-      <div class="section-title">GUESTBOOK</div>
+      <div class="section-title">방명록</div>
 
       <form class="guestbook" id="guestbookForm">
         <input id="guestName" maxlength="30" placeholder="이름" required>
