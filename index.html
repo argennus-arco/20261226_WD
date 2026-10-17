@@ -23,7 +23,7 @@
   --muted: #92848d;
 }
 
-* { box-sizing: border-box; }
+html *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   margin: 0;
@@ -383,10 +383,64 @@ button, input, textarea { font: inherit; }
   background: #eee7e8;
 }
 
-/* 계좌 */
+/* 계좌 드롭다운(아코디언) 디자인 */
 .account-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+}
+
+.account-group {
+  border: 1px solid #e4dcde;
+  background: var(--white);
+}
+
+.account-group summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 14px;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.account-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-group summary:hover,
+.account-group summary:active {
+  background: #faf7f5;
+}
+
+.account-group .arrow {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  transition: transform 0.25s ease;
+}
+
+.account-group .arrow svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.account-group[open] summary {
+  border-bottom: 1px solid #e4dcde;
+  background: #faf7f5;
+}
+
+.account-group[open] .arrow {
+  transform: rotate(180deg);
 }
 
 .account {
@@ -394,9 +448,14 @@ button, input, textarea { font: inherit; }
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 15px 12px;
-  border: 1px solid #e4dcde;
+  padding: 14px 14px;
+  border-bottom: 1px dashed #e4dcde;
+  background: #fffdfb;
   font-size: 12px;
+}
+
+.account:last-child {
+  border-bottom: 0;
 }
 
 .account small {
@@ -517,7 +576,7 @@ const WEDDING = {
   lat: 35.8602666,
   lng: 128.5668793,
 
-  // 계좌번호 목록 (괄호 안 예금주 표기는 화면에만 보이고 복사 시에는 계좌번호만 복사됩니다)
+  // 계좌번호 목록 ('신랑' 또는 '신부'가 포함된 라벨을 기준으로 각각의 드롭다운에 자동 분류됩니다)
   accounts: [
     { label: "신랑 측 · 은우", number: "대구은행 508-13-998184-3 (예금주: 장은우)" },
     { label: "신부 측 · 진영", number: "하나은행 104-891264-84807 (예금주: 정진영)" },
@@ -525,7 +584,7 @@ const WEDDING = {
     { label: "신부 측 · 혼주", number: "IM뱅크 002-13-089742 (예금주: 박인숙)" }
   ],
 
-  // 👇 여기에 Google Apps Script 웹 앱 전체 URL(https://script.google.com/macros/s/.../exec)을 넣어 주세요
+  // 방명록 Google Apps Script 웹 앱 전체 URL
   guestbookUrl: "https://script.google.com/macros/s/AKfycbzxlrQTjmKRsp_N3cxqq6OkWhi6rEtDQYkt2EUtoOpfbNZ_kYtx6ovf3EIijXhtSSii/exec"
 };
 
@@ -903,22 +962,23 @@ document.getElementById("copyAddress").onclick = function () {
   copyText(WEDDING.address, this);
 };
 
-/* 계좌 목록 자동 생성 및 복사 버튼 연결 */
+/* 계좌 목록 자동 생성 (신랑 측 / 신부 측 각각 드롭다운 생성) */
 (function () {
   const accountListEl = document.getElementById("accountList");
   if (!accountListEl || !Array.isArray(WEDDING.accounts)) return;
 
-  WEDDING.accounts.forEach(function (acc) {
-    if (!acc.number) return;
+  const chevronSvg =
+    '<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
+  function createAccountRow(labelText, numberText) {
     const row = document.createElement("div");
     row.className = "account";
 
     const info = document.createElement("div");
     const small = document.createElement("small");
-    small.textContent = acc.label;
+    small.textContent = labelText;
     const code = document.createElement("code");
-    code.textContent = acc.number;
+    code.textContent = numberText;
     info.append(small, code);
 
     const btn = document.createElement("button");
@@ -926,13 +986,50 @@ document.getElementById("copyAddress").onclick = function () {
     btn.type = "button";
     btn.textContent = "계좌 복사";
     btn.onclick = function () {
-      const cleanAccount = acc.number.replace(/\(.*?\)/g, "").trim();
+      const cleanAccount = numberText.replace(/\(.*?\)/g, "").trim();
       copyText(cleanAccount, btn);
     };
 
     row.append(info, btn);
-    accountListEl.appendChild(row);
+    return row;
+  }
+
+  const groomAccounts = WEDDING.accounts.filter(function (a) {
+    return a.number && a.label.indexOf("신랑") !== -1;
   });
+
+  const brideAccounts = WEDDING.accounts.filter(function (a) {
+    return a.number && a.label.indexOf("신부") !== -1;
+  });
+
+  function renderDropdown(sideTitle, list) {
+    if (!list.length) return;
+
+    const details = document.createElement("details");
+    details.className = "account-group";
+
+    const summary = document.createElement("summary");
+    const titleSpan = document.createElement("span");
+    titleSpan.textContent = sideTitle + " · 계좌번호 보기";
+
+    const arrowSpan = document.createElement("span");
+    arrowSpan.className = "arrow";
+    arrowSpan.setAttribute("aria-hidden", "true");
+    arrowSpan.innerHTML = chevronSvg;
+
+    summary.append(titleSpan, arrowSpan);
+    details.appendChild(summary);
+
+    list.forEach(function (acc) {
+      const shortLabel = acc.label.replace(/^신[랑부]\s*측\s*·?\s*/, "") || acc.label;
+      details.appendChild(createAccountRow(shortLabel, acc.number));
+    });
+
+    accountListEl.appendChild(details);
+  }
+
+  renderDropdown("신랑 측", groomAccounts);
+  renderDropdown("신부 측", brideAccounts);
 })();
 
 /* 구글 지도 표시 & 카카오맵·네이버지도 연동 */
