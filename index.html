@@ -189,6 +189,7 @@ button, input, textarea { font: inherit; }
 }
 
 .invitation-text {
+  margin-top: 18px;
   color: #786c75;
   font-size: 12px;
   line-height: 2.2;
@@ -516,11 +517,15 @@ const WEDDING = {
   lat: 35.8602666,
   lng: 128.5668793,
 
-  // 계좌번호
-  groomAccount: "대구은행 508-13-998184-3",
-  brideAccount: "하나은행 104-891264-84807",
+  // 계좌번호 목록 (괄호 안 예금주 표기는 화면에만 보이고 복사 시에는 계좌번호만 복사됩니다)
+  accounts: [
+    { label: "신랑 측 · 은우", number: "대구은행 508-13-998184-3 (예금주: 장은우)" },
+    { label: "신부 측 · 진영", number: "하나은행 104-891264-84807 (예금주: 정진영)" },
+    { label: "신부 측 · 혼주", number: "신협 010-7370-5526 (예금주: 정대철)" }
+    { label: "신부 측 · 혼주", number: "IM뱅크 002-13-089742 (예금주: 박인숙)" }
+  ],
 
-  // 방명록 Google Apps Script 웹 앱 URL
+  // 👇 여기에 Google Apps Script 웹 앱 전체 URL(https://script.google.com/macros/s/.../exec)을 넣어 주세요
   guestbookUrl: "https://script.google.com/macros/s/AKfycbzxlrQTjmKRsp_N3cxqq6OkWhi6rEtDQYkt2EUtoOpfbNZ_kYtx6ovf3EIijXhtSSii/exec"
 };
 
@@ -582,7 +587,7 @@ function directUrl(url, type = "image") {
 
       <header class="details-header">
         <div class="eyebrow">초대합니다</div>
-          <p class="invitation-text">
+        <p class="invitation-text">
           시간을 건너 다시 마주한 두 사람이<br>
           서로의 계절을 존중하며<br>
           마침내 오롯이 함께하기 위해<br>
@@ -594,10 +599,7 @@ function directUrl(url, type = "image") {
         </p>
       </header>
 
-      
       <div class="section-title">갤러리</div>
-
-    <div class="photo-grid" id="photoGrid"></div>
 
       <!-- 사진 배열이 자동으로 렌더링되는 영역 -->
       <div class="photo-grid" id="photoGrid"></div>
@@ -636,28 +638,7 @@ function directUrl(url, type = "image") {
       </div>
 
       <div class="section-title">WITH LOVE</div>
-
-      <div class="account-list">
-        <div class="account">
-          <div>
-            <small>장은우 신랑 측 · 계좌번호</small>
-            <code id="groomAccount"></code>
-          </div>
-          <button class="copy-button" id="copyGroom" type="button">
-            계좌 복사
-          </button>
-        </div>
-
-        <div class="account">
-          <div>
-            <small>정진영 신부 측 · 계좌번호</small>
-            <code id="brideAccount"></code>
-          </div>
-          <button class="copy-button" id="copyBride" type="button">
-            계좌 복사
-          </button>
-        </div>
-      </div>
+      <div class="account-list" id="accountList"></div>
 
       <div class="section-title">방명록</div>
 
@@ -672,9 +653,7 @@ function directUrl(url, type = "image") {
           방명록 작성
         </button>
 
-        <p class="guestbook-note" id="guestbookNote">
-          
-        </p>
+        <p class="guestbook-note" id="guestbookNote"></p>
       </form>
 
       <div class="closing">
@@ -720,7 +699,6 @@ function directUrl(url, type = "image") {
   const lightboxPrev = document.getElementById("lightboxPrev");
   const lightboxNext = document.getElementById("lightboxNext");
 
-  // 유효한 사진 주소만 필터링
   const validPhotos = (WEDDING.photos || [])
     .map(function (url) { return directUrl(url, "image"); })
     .filter(Boolean);
@@ -765,7 +743,6 @@ function directUrl(url, type = "image") {
     updateLightboxView();
   }
 
-  // 사진 그리드 렌더링
   validPhotos.forEach(function (src, index) {
     const img = document.createElement("img");
     img.src = src;
@@ -785,7 +762,6 @@ function directUrl(url, type = "image") {
     photoGrid.appendChild(img);
   });
 
-  // 모달 버튼 이벤트
   lightboxClose.addEventListener("click", closeLightbox);
   lightboxPrev.addEventListener("click", function (e) {
     e.stopPropagation();
@@ -802,7 +778,6 @@ function directUrl(url, type = "image") {
     }
   });
 
-  // 키보드 방향키 및 ESC 지원
   document.addEventListener("keydown", function (event) {
     if (!lightbox.classList.contains("is-open")) return;
     if (event.key === "Escape") closeLightbox();
@@ -810,7 +785,6 @@ function directUrl(url, type = "image") {
     if (event.key === "ArrowRight") showNext();
   });
 
-  // 모바일 터치 좌우 스와이프 지원
   let touchStartX = 0;
   lightbox.addEventListener("touchstart", function (event) {
     touchStartX = event.changedTouches[0].screenX;
@@ -896,14 +870,12 @@ document.getElementById("eventTime").textContent = WEDDING.time;
 document.getElementById("eventVenue").textContent = WEDDING.venue;
 document.getElementById("eventAddress").textContent = WEDDING.address;
 
-document.getElementById("groomAccount").textContent = WEDDING.groomAccount;
-document.getElementById("brideAccount").textContent = WEDDING.brideAccount;
-
-/* 복사 기능 */
-async function copyText(text) {
+/* 복사 기능 (버튼 텍스트 피드백 지원) */
+async function copyText(text, triggerBtn) {
+  let copied = false;
   try {
     await navigator.clipboard.writeText(text);
-    alert("복사했습니다.");
+    copied = true;
   } catch (error) {
     const textarea = document.createElement("textarea");
     textarea.value = text;
@@ -912,24 +884,56 @@ async function copyText(text) {
     document.body.appendChild(textarea);
     textarea.select();
 
-    const success = document.execCommand("copy");
+    copied = document.execCommand("copy");
     textarea.remove();
+  }
 
-    alert(success ? "복사했습니다." : "복사에 실패했습니다.");
+  if (triggerBtn && copied) {
+    const originalText = triggerBtn.textContent;
+    triggerBtn.textContent = "복사 완료";
+    setTimeout(function () {
+      triggerBtn.textContent = originalText;
+    }, 1500);
+  } else {
+    alert(copied ? "복사했습니다." : "복사에 실패했습니다.");
   }
 }
 
 document.getElementById("copyAddress").onclick = function () {
-  copyText(WEDDING.address);
+  copyText(WEDDING.address, this);
 };
 
-document.getElementById("copyGroom").onclick = function () {
-  copyText(WEDDING.groomAccount);
-};
+/* 계좌 목록 자동 생성 및 복사 버튼 연결 */
+(function () {
+  const accountListEl = document.getElementById("accountList");
+  if (!accountListEl || !Array.isArray(WEDDING.accounts)) return;
 
-document.getElementById("copyBride").onclick = function () {
-  copyText(WEDDING.brideAccount);
-};
+  WEDDING.accounts.forEach(function (acc) {
+    if (!acc.number) return;
+
+    const row = document.createElement("div");
+    row.className = "account";
+
+    const info = document.createElement("div");
+    const small = document.createElement("small");
+    small.textContent = acc.label;
+    const code = document.createElement("code");
+    code.textContent = acc.number;
+    info.append(small, code);
+
+    const btn = document.createElement("button");
+    btn.className = "copy-button";
+    btn.type = "button";
+    btn.textContent = "계좌 복사";
+    btn.onclick = function () {
+      const cleanAccount = acc.number.replace(/\(.*?\)/g, "").trim();
+      copyText(cleanAccount, btn);
+    };
+
+    row.append(info, btn);
+    accountListEl.appendChild(row);
+  });
+})();
 
 /* 구글 지도 표시 & 카카오맵·네이버지도 연동 */
 (function () {
@@ -1011,8 +1015,8 @@ document.getElementById("copyBride").onclick = function () {
 
     if (!name || !message) return;
 
-    if (!apiUrl || !apiUrl.startsWith("https://script.google.com/")) {
-      alert("구글 스크립트 URL이 아직 연결되지 않았습니다.");
+    if (!apiUrl || !apiUrl.includes("/macros/s/")) {
+      alert("구글 스크립트 웹 앱 URL(/macros/s/.../exec)을 전체 입력해 주세요.");
       return;
     }
 
@@ -1031,9 +1035,8 @@ document.getElementById("copyBride").onclick = function () {
         }
         form.reset();
         if (note) {
-          note.textContent = "";
+          note.textContent = "축하 인사가 소중히 전달되었습니다. 감사합니다.";
         }
-        alert("축하 인사가 전달되었습니다. 감사합니다.");
       })
       .catch(function (err) {
         console.error("방명록 저장 실패:", err);
